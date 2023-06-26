@@ -1,0 +1,344 @@
+import React, { useRef, useEffect, useMemo } from "react";
+// @ts-ignore
+import loopProtect from "loop-protect";
+import { JSHINT } from "jshint";
+import decomment from "decomment";
+// import { resolvePathToFile } from "../lib/filePath";
+// import getConfig from "../../utils/getConfig";
+import {
+  MEDIA_FILE_REGEX,
+  MEDIA_FILE_QUOTED_REGEX,
+  STRING_REGEX,
+  PLAINTEXT_FILE_REGEX,
+  EXTERNAL_LINK_REGEX,
+  NOT_EXTERNAL_LINK_REGEX,
+} from "../lib/fileUtils";
+import { getAllScriptOffsets } from "../lib/consoleUtils";
+// import { registerFrame } from '../../utils/dispatcher';
+import { FileContent, createBlobUrl } from "../lib/filesUtils";
+const getConfig = (key: "PREVIEW_SCRIPTS_URL" | "EDITOR_URL") => {
+  if (key === "PREVIEW_SCRIPTS_URL") {
+    return "localhost";
+  }
+  if (key === "EDITOR_URL") {
+    return "http://localhost:3000";
+  }
+};
+
+function resolvePathToFile(path: string, files: FileContent[]) {
+  if (path.startsWith("/")) {
+    path = path.substring(1);
+  }
+  return files.find((file) => file.path === path);
+}
+
+let objectUrls: any = {};
+let objectPaths: any = {};
+
+function resolvePathsForElementsWithAttribute(
+  attr: any,
+  sketchDoc: Document,
+  files: FileContent[]
+) {
+  const elements = sketchDoc.querySelectorAll(`[${attr}]`);
+  const elementsArray = Array.prototype.slice.call(elements);
+  elementsArray.forEach((element) => {
+    if (element.getAttribute(attr).match(MEDIA_FILE_REGEX)) {
+      const file = resolvePathToFile(element.getAttribute(attr), files);
+      if (file && !file.url) {
+        element.setAttribute(attr, createBlobUrl(file));
+      }
+      //   const resolvedFile = resolvePathToFile(element.getAttribute(attr), files);
+      //   if (resolvedFile && resolvedFile.name) {
+    }
+  });
+}
+
+function resolveCSSLinksInString(content: string, files: FileContent[]) {
+  let newContent = content;
+  let cssFileStrings = content.match(STRING_REGEX) || [];
+  cssFileStrings.forEach((cssFileString) => {
+    if (cssFileString.match(MEDIA_FILE_QUOTED_REGEX)) {
+      const filePath = cssFileString.substr(1, cssFileString.length - 2);
+      const quoteCharacter = cssFileString.substr(0, 1);
+      const resolvedFile = resolvePathToFile(filePath, files);
+      if (resolvedFile) {
+        if (resolvedFile.url) {
+          newContent = newContent.replace(
+            cssFileString,
+            quoteCharacter + resolvedFile.url + quoteCharacter
+          );
+        }
+      }
+    }
+  });
+  return newContent;
+}
+
+function jsPreprocess(jsText: string) {
+  let newContent = jsText;
+  // check the code for js errors before sending it to strip comments
+  // or loops.
+  JSHINT(newContent);
+
+  if (JSHINT.errors.length === 0) {
+    newContent = decomment(newContent, {
+      ignore: /\/\/\s*noprotect/g,
+      space: true,
+    });
+    newContent = loopProtect(newContent);
+  }
+  console.log({newContent})
+  return newContent;
+}
+
+function resolveJSLinksInString(content: string, files: FileContent[]) {
+  let newContent = content;
+  let jsFileStrings = content.match(STRING_REGEX) || [];
+  jsFileStrings.forEach((jsFileString) => {
+    if (jsFileString.match(MEDIA_FILE_QUOTED_REGEX)) {
+      const filePath = jsFileString.substr(1, jsFileString.length - 2);
+      const quoteCharacter = jsFileString.substr(0, 1);
+      const resolvedFile = resolvePathToFile(filePath, files);
+
+      if (resolvedFile) {
+        if (resolvedFile.url) {
+          newContent = newContent.replace(
+            jsFileString,
+            quoteCharacter + resolvedFile.url + quoteCharacter
+          );
+        } else if (resolvedFile.path.match(PLAINTEXT_FILE_REGEX)) {
+          newContent = newContent.replace(
+            jsFileString,
+            quoteCharacter + resolvedFile.blobUrl + quoteCharacter
+          );
+        }
+      }
+    }
+  });
+
+  return jsPreprocess(newContent);
+}
+
+function resolveScripts(sketchDoc: Document, files: FileContent[]) {
+  const scriptsInHTML = sketchDoc.getElementsByTagName("script");
+  const scriptsInHTMLArray = Array.prototype.slice.call(scriptsInHTML);
+  scriptsInHTMLArray.forEach((script) => {
+    if (
+      script.getAttribute("src") &&
+      script.getAttribute("src").match(NOT_EXTERNAL_LINK_REGEX) !== null
+    ) {
+      const resolvedFile = resolvePathToFile(script.getAttribute("src"), files);
+      if (resolvedFile) {
+        if (resolvedFile.url) {
+          script.setAttribute("src", resolvedFile.url);
+        } else {
+          // in the future, when using y.js, could remake the blob for only the file(s)
+          // that changed
+          const blobUrl = createBlobUrl(resolvedFile);
+          script.setAttribute("src", blobUrl);
+          const blobPath = blobUrl.split("/").pop();
+          // objectUrls[blobUrl] = `${resolvedFile.filePath}${
+          //   resolvedFile.filePath.length > 0 ? '/' : ''
+          // }${resolvedFile.name}`;
+          objectUrls[blobUrl] = `${resolvedFile.path}/${resolvedFile.path}`;
+          objectPaths[blobPath!] = resolvedFile.path;
+          // script.setAttribute('data-tag', `${startTag}${resolvedFile.name}`);
+          // script.removeAttribute('src');
+          // script.innerHTML = resolvedFile.content; // eslint-disable-line
+        }
+      }
+    } else if (
+      !(
+        script.getAttribute("src") &&
+        script.getAttribute("src").match(EXTERNAL_LINK_REGEX)
+      ) !== null
+    ) {
+      script.setAttribute("crossorigin", "");
+      script.innerHTML = resolveJSLinksInString(script.innerHTML, files); // eslint-disable-line
+    }
+  });
+}
+
+function resolveStyles(sketchDoc: Document, files: FileContent[]) {
+  const inlineCSSInHTML = sketchDoc.getElementsByTagName("style");
+  const inlineCSSInHTMLArray = Array.prototype.slice.call(inlineCSSInHTML);
+  inlineCSSInHTMLArray.forEach((style) => {
+    style.innerHTML = resolveCSSLinksInString(style.innerHTML, files); // eslint-disable-line
+  });
+
+  const cssLinksInHTML = sketchDoc.querySelectorAll('link[rel="stylesheet"]');
+  const cssLinksInHTMLArray = Array.prototype.slice.call(cssLinksInHTML);
+  cssLinksInHTMLArray.forEach((css) => {
+    if (
+      css.getAttribute("href") &&
+      css.getAttribute("href").match(NOT_EXTERNAL_LINK_REGEX) !== null
+    ) {
+      const resolvedFile = resolvePathToFile(css.getAttribute("href"), files);
+      if (resolvedFile) {
+        if (resolvedFile.url) {
+          css.href = resolvedFile.url; // eslint-disable-line
+        } else {
+          const style = sketchDoc.createElement("style");
+          style.innerHTML = `\n${resolvedFile.content}`;
+          sketchDoc.head.appendChild(style);
+          css.parentElement.removeChild(css);
+        }
+      }
+    }
+  });
+}
+
+function resolveJSAndCSSLinks(files: FileContent[]) {
+  const newFiles: any = [];
+  files.forEach((file) => {
+    const newFile = { ...file };
+    if (file.path.match(/.*\.js$/i)) {
+      newFile.content = resolveJSLinksInString(newFile.content, files);
+    } else if (file.path.match(/.*\.css$/i)) {
+      newFile.content = resolveCSSLinksInString(newFile.content, files);
+    }
+    newFiles.push(newFile);
+  });
+  return newFiles;
+}
+
+function addLoopProtect(sketchDoc: Document) {
+  const scriptsInHTML = sketchDoc.getElementsByTagName("script");
+  const scriptsInHTMLArray = Array.prototype.slice.call(scriptsInHTML);
+  scriptsInHTMLArray.forEach((script) => {
+    script.innerHTML = jsPreprocess(script.innerHTML); // eslint-disable-line
+  });
+}
+
+function injectLocalFiles(
+  files: FileContent[],
+  htmlFile: FileContent,
+  options: any
+) {
+  const { basePath, gridOutput, textOutput } = options;
+  let scriptOffs: any = [];
+  let objectUrls: any = {};
+  let objectPaths: any = {};
+  const resolvedFiles = resolveJSAndCSSLinks(files);
+  console.log({resolvedFiles})
+  const parser = new DOMParser();
+  const sketchDoc = parser.parseFromString(htmlFile.content, "text/html");
+
+  const base = sketchDoc.createElement("base");
+  base.href = `${window.origin}${basePath}${basePath.length > 1 && "/"}`;
+  sketchDoc.head.appendChild(base);
+
+  resolvePathsForElementsWithAttribute("src", sketchDoc, resolvedFiles);
+  resolvePathsForElementsWithAttribute("href", sketchDoc, resolvedFiles);
+  // should also include background, data, poster, but these are used way less often
+
+  resolveScripts(sketchDoc, resolvedFiles);
+  resolveStyles(sketchDoc, resolvedFiles);
+
+  const accessiblelib = sketchDoc.createElement("script");
+  accessiblelib.setAttribute(
+    "src",
+    "https://cdn.jsdelivr.net/gh/processing/p5.accessibility@0.1.1/dist/p5-accessibility.js"
+  );
+  const accessibleOutputs = sketchDoc.createElement("section");
+  accessibleOutputs.setAttribute("id", "accessible-outputs");
+  accessibleOutputs.setAttribute("aria-label", "accessible-output");
+  if (textOutput || gridOutput) {
+    sketchDoc.body.appendChild(accessibleOutputs);
+    sketchDoc.body.appendChild(accessiblelib);
+    // if (textOutput) {
+    //   const textSection = sketchDoc.createElement("section");
+    //   textSection.setAttribute("id", "textOutput-content");
+    //   sketchDoc.getElementById("accessible-outputs").appendChild(textSection);
+    // }
+    // if (gridOutput) {
+    //   const gridSection = sketchDoc.createElement("section");
+    //   gridSection.setAttribute("id", "tableOutput-content");
+    //   sketchDoc.getElementById("accessible-outputs").appendChild(gridSection);
+    // }
+  }
+
+  const previewScripts = sketchDoc.createElement("script");
+  previewScripts.src = `${window.location.origin}${getConfig(
+    "PREVIEW_SCRIPTS_URL"
+  )}`;
+  previewScripts.setAttribute("crossorigin", "");
+  sketchDoc.head.appendChild(previewScripts);
+
+  const sketchDocString = `<!DOCTYPE HTML>\n${sketchDoc.documentElement.outerHTML}`;
+  scriptOffs = getAllScriptOffsets(sketchDocString);
+  const consoleErrorsScript = sketchDoc.createElement("script");
+  consoleErrorsScript.innerHTML = `
+    window.offs = ${JSON.stringify(scriptOffs)};
+    window.objectUrls = ${JSON.stringify(objectUrls)};
+    window.objectPaths = ${JSON.stringify(objectPaths)};
+    window.editorOrigin = '${getConfig("EDITOR_URL")}';
+  `;
+  addLoopProtect(sketchDoc);
+  sketchDoc.head.prepend(consoleErrorsScript);
+
+  return `<!DOCTYPE HTML>\n${sketchDoc.documentElement.outerHTML}`;
+}
+
+function getHtmlFile(files: FileContent[]) {
+  return files.filter((file) => file.path.match(/.*\.html$/i))[0];
+}
+
+function EmbedFrame({
+  files,
+  isPlaying,
+  basePath = '/',
+  gridOutput = false,
+  textOutput = false,
+}: {
+  files: FileContent[];
+  isPlaying: boolean;
+  basePath?: string;
+  gridOutput?: boolean;
+  textOutput?: boolean;
+}) {
+  const iframe = useRef<HTMLIFrameElement>(null);
+  const htmlFile = useMemo(() => getHtmlFile(files), [files]);
+
+  //   useEffect(() => {
+  //     const unsubscribe = registerFrame(
+  //       iframe.current.contentWindow,
+  //       window.origin
+  //     );
+  //     return () => {
+  //       unsubscribe();
+  //     };
+  //   });
+
+  function renderSketch() {
+    const doc = iframe.current;
+    if (!doc) {
+      return;
+    }
+    if (isPlaying) {
+      const htmlDoc = injectLocalFiles(files, htmlFile, {
+        basePath,
+        gridOutput,
+        textOutput,
+      });
+      const generatedHtmlFile = {
+        path: "index.html",
+        content: htmlDoc,
+      };
+      const htmlUrl = createBlobUrl(generatedHtmlFile);
+      doc.src = htmlUrl;
+      // BRO FOR SOME REASON YOU HAVE TO DO THIS TO GET IT TO WORK ON SAFARI
+      //   setTimeout(() => {
+      //     doc.src = htmlUrl;
+      //   }, 0);
+    } else {
+      doc.src = "";
+    }
+  }
+
+  // useEffect(renderSketch, [files, isPlaying]);
+  return <iframe aria-label="Sketch Preview" role="main" ref={iframe} />;
+}
+
+export default EmbedFrame;

@@ -6,10 +6,12 @@ import {IZoraCreator1155Factory} from "@zoralabs/zora-1155-contracts/src/interfa
 import {IZoraCreator1155} from "@zoralabs/zora-1155-contracts/src/interfaces/IZoraCreator1155.sol";
 import {ICreatorRoyaltiesControl} from "@zoralabs/zora-1155-contracts/src/interfaces/ICreatorRoyaltiesControl.sol";
 import {ZoraCreator1155Impl} from "@zoralabs/zora-1155-contracts/src/nft/ZoraCreator1155Impl.sol";
+import {ZoraCreator1155FactoryImpl} from "@zoralabs/zora-1155-contracts/src/factory/ZoraCreator1155FactoryImpl.sol";
 
 contract CreativeMintManager is Ownable2Step {
     error ProjectNotSetup();
     error CallError(bytes);
+    event MintedNewToken(address indexed user, address indexed target, uint256 indexed tokenId, string media);
 
     mapping(string => address) public projectTypeContracts;
     struct MintInfo {
@@ -51,7 +53,7 @@ contract CreativeMintManager is Ownable2Step {
                 payable(address(this)),
                 setupActions
             );
-        projectTypeContracts[projectType] = newContract;
+        projectTypeContracts[projectType] =  newContract;
     }
 
     function mintProject(
@@ -72,6 +74,8 @@ contract CreativeMintManager is Ownable2Step {
             msg.sender,
             IZoraCreator1155(toMint).PERMISSION_BIT_ADMIN()
         );
+        IZoraCreator1155(toMint).adminMint(msg.sender, newTokenId, 1, "");
+        emit MintedNewToken(msg.sender, toMint, newTokenId, tokenURI);
     }
 
     function updateProject(

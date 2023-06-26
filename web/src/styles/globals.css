@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+button {
+    display: block;
+    padding: 6px;
+    margin: 10px;
+    background: #eee;
+}
+
+button:hover {
+    background:#aaa;
+}
+
+button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+body {
+    font-family: helvetica;
+
+}
+
+textarea, input[type=text] {
+    padding: 8px;
+    margin: 8px;
+    border: 1px solid gray;
+}
+
+h2 {
+    font-size: 2em;
+}
+
+h3 {
+    font-size: 1.8em;
+}
+
+input {
+    display: block;
+}
