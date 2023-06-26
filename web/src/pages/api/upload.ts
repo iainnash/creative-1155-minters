@@ -2,6 +2,7 @@ import buffer from "buffer";
 import type { NextApiRequest, NextApiResponse } from "next";
 import fsPromises from "fs/promises";
 import { NFTStorage } from "nft.storage";
+import path from "path";
 
 type ResponseData = {
   webpage: string;
@@ -15,20 +16,25 @@ export default async function handler(
   const { title, description, code } = req.body;
   // const result = TEMPLATE(title, code);
   // const file = await fsPromises.readFile("public/p5js/p5-all.min.js");
+  const file = path.join(process.cwd(), "public", "p5js", "p5-all.min.js");
+  const lib = await fsPromises.readFile(file);
+
   const codeWithLib = code.replace(
     '<script src="/p5js/p5-all.min.js"></script>',
-    `<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"></script>`
+    '<script src="p5js/p5-all.min.js"></script>'
   );
   // const codeWithLib = code.replace(
   //   '<script src="/p5js/p5-all.min.js"></script>',
   //   '<script src="p5js/p5-all.min.js"></script>',
   // );
+
   // const lib = new buffer.File([p5js], "/p5js/p5-all.min.js");
-  const html = new buffer.File([code], "/index.html");
+  const html = new buffer.File([codeWithLib], "/index.html");
+  const p5jslib = new buffer.File([lib], "/p5js/p5-all.min.js");
   const storage = new NFTStorage({
     token: process.env.SERVER_NFT_STORAGE_API_KEY!,
   });
-  const webpage = await storage.storeDirectory([html]);
+  const webpage = await storage.storeDirectory([html, p5jslib]);
 
   let previewImage;
   if (req.body.previewImage) {
