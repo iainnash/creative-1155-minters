@@ -14,25 +14,21 @@ export default async function handler(
 ) {
   const { title, description, code } = req.body;
   // const result = TEMPLATE(title, code);
-  const file = await fsPromises.readFile("public/p5js/p5-all.min.js");
-  // const codeWithLib = code.replace(
-  //   '<script src="/p5js/p5-all.min.js"></script>',
-  //   `<script>${file.toString("utf-8")}</script>`
-  // );
+  // const file = await fsPromises.readFile("public/p5js/p5-all.min.js");
   const codeWithLib = code.replace(
     '<script src="/p5js/p5-all.min.js"></script>',
-    `
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.js" crossorigin=""></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/addons/p5.sound.min.js" crossorigin=""></script>
-  `
+    `<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"></script>`
   );
-  console.log({ code, codeWithLib });
-  const lib = new buffer.File([file], "/p5js/p5-all.min.js");
-  const html = new buffer.File([codeWithLib], "/index.html");
+  // const codeWithLib = code.replace(
+  //   '<script src="/p5js/p5-all.min.js"></script>',
+  //   '<script src="p5js/p5-all.min.js"></script>',
+  // );
+  // const lib = new buffer.File([p5js], "/p5js/p5-all.min.js");
+  const html = new buffer.File([code], "/index.html");
   const storage = new NFTStorage({
     token: process.env.SERVER_NFT_STORAGE_API_KEY!,
   });
-  const webpage = await storage.storeDirectory([lib, html]);
+  const webpage = await storage.storeDirectory([html]);
 
   let previewImage;
   if (req.body.previewImage) {
