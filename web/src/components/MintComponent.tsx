@@ -28,16 +28,16 @@ export const MintComponent = ({
     args: [type, `ipfs://${metadata.metadata}`, BigInt("18446744073709552000")],
   });
 
-  // useContractEvent({
-  //   chainId: zoraTestnet.id,
-  //   address: target,
-  //   abi: factoryABI,
-  //   eventName: "ProjectMinted",
-  //   listener(log) {
-  //     console.log(log);
-  //     alert(log);
-  //   },
-  // });
+  useContractEvent({
+    chainId: zoraTestnet.id,
+    address: target,
+    abi: factoryABI,
+    eventName: "ProjectMinted",
+    listener(log) {
+      console.log(log);
+      alert(log);
+    },
+  });
 
   if (!address) {
     return (

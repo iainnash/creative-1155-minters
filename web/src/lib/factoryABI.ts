@@ -1,234 +1,234 @@
 export const factoryABI = [
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "_owner",
-        "type": "address"
+        internalType: "address",
+        name: "_owner",
+        type: "address",
       },
       {
-        "internalType": "address",
-        "name": "_zoraFactory",
-        "type": "address"
-      }
+        internalType: "address",
+        name: "_zoraFactory",
+        type: "address",
+      },
     ],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
+    stateMutability: "nonpayable",
+    type: "constructor",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "bytes",
-        "name": "",
-        "type": "bytes"
-      }
+        internalType: "bytes",
+        name: "",
+        type: "bytes",
+      },
     ],
-    "name": "CallError",
-    "type": "error"
+    name: "CallError",
+    type: "error",
   },
   {
-    "inputs": [],
-    "name": "ProjectNotSetup",
-    "type": "error"
+    inputs: [],
+    name: "ProjectNotSetup",
+    type: "error",
   },
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
+        indexed: true,
+        internalType: "address",
+        name: "user",
+        type: "address",
       },
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "target",
-        "type": "address"
+        indexed: true,
+        internalType: "address",
+        name: "target",
+        type: "address",
       },
       {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
+        indexed: true,
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
       },
       {
-        "indexed": false,
-        "internalType": "string",
-        "name": "media",
-        "type": "string"
-      }
+        indexed: false,
+        internalType: "string",
+        name: "media",
+        type: "string",
+      },
     ],
-    "name": "MintedNewToken",
-    "type": "event"
+    name: "MintedNewToken",
+    type: "event",
   },
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "previousOwner",
-        "type": "address"
+        indexed: true,
+        internalType: "address",
+        name: "previousOwner",
+        type: "address",
       },
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "newOwner",
-        "type": "address"
-      }
+        indexed: true,
+        internalType: "address",
+        name: "newOwner",
+        type: "address",
+      },
     ],
-    "name": "OwnershipTransferStarted",
-    "type": "event"
+    name: "OwnershipTransferStarted",
+    type: "event",
   },
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "previousOwner",
-        "type": "address"
+        indexed: true,
+        internalType: "address",
+        name: "previousOwner",
+        type: "address",
       },
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "newOwner",
-        "type": "address"
-      }
+        indexed: true,
+        internalType: "address",
+        name: "newOwner",
+        type: "address",
+      },
     ],
-    "name": "OwnershipTransferred",
-    "type": "event"
+    name: "OwnershipTransferred",
+    type: "event",
   },
   {
-    "inputs": [],
-    "name": "acceptOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    inputs: [],
+    name: "acceptOwnership",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "string",
-        "name": "projectType",
-        "type": "string"
+        internalType: "string",
+        name: "projectType",
+        type: "string",
       },
       {
-        "internalType": "string",
-        "name": "tokenURI",
-        "type": "string"
+        internalType: "string",
+        name: "tokenURI",
+        type: "string",
       },
       {
-        "internalType": "uint256",
-        "name": "maxSupply",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "maxSupply",
+        type: "uint256",
+      },
     ],
-    "name": "mintProject",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: "mintProject",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    "inputs": [],
-    "name": "owner",
-    "outputs": [
+    inputs: [],
+    name: "owner",
+    outputs: [
       {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [],
-    "name": "pendingOwner",
-    "outputs": [
+    inputs: [],
+    name: "pendingOwner",
+    outputs: [
       {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
     ],
-    "name": "projectTypeContracts",
-    "outputs": [
+    name: "projectTypeContracts",
+    outputs: [
       {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "string",
-        "name": "projectType",
-        "type": "string"
+        internalType: "string",
+        name: "projectType",
+        type: "string",
       },
       {
-        "internalType": "string",
-        "name": "contractURI",
-        "type": "string"
-      }
+        internalType: "string",
+        name: "contractURI",
+        type: "string",
+      },
     ],
-    "name": "registerProject",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: "registerProject",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    "inputs": [],
-    "name": "renounceOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    inputs: [],
+    name: "renounceOwnership",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "newOwner",
-        "type": "address"
-      }
+        internalType: "address",
+        name: "newOwner",
+        type: "address",
+      },
     ],
-    "name": "transferOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: "transferOwnership",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "toMint",
-        "type": "address"
+        internalType: "address",
+        name: "toMint",
+        type: "address",
       },
       {
-        "internalType": "bytes",
-        "name": "call",
-        "type": "bytes"
-      }
+        internalType: "bytes",
+        name: "call",
+        type: "bytes",
+      },
     ],
-    "name": "updateProject",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  }
-] as const;
+    name: "updateProject",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+];

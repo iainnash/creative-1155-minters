@@ -67,7 +67,7 @@ const FileItem = ({
 // })
 
 function makeDataURIFromFile(file: FileContent) {
-  return makeDataURI(getType(file.path) || 'text/plain', file.content);
+  return makeDataURI(getType(file.path) || "text/plain", file.content);
 }
 
 function makeDataURI(mime: string, data: string) {
@@ -115,7 +115,7 @@ export default function CreatePage() {
     },
     [setFiles, files, setActiveFileIndex]
   );
-  const [productionContent, setProductionContent] = useState('');
+  const [productionContent, setProductionContent] = useState("");
   const debouncedCode = useDebounce(code, 1000);
   const preview = useRef<HTMLIFrameElement>(null);
   const [autoRun, setAutoRun] = useState(false);
@@ -124,33 +124,40 @@ export default function CreatePage() {
   const update = useCallback(() => {
     const mainIndex = files.findIndex((file) => file.path === "index.html");
     const paths = files.map((file) => file.path);
-    const newFilesContent = files.map((file, index) => ({...file, index}));
+    const newFilesContent = files.map((file, index) => ({ ...file, index }));
     if (mainIndex !== -1) {
       const processFile = (file: any) => {
-        const newIndex = newFilesContent.findIndex((newFile) => newFile.index === file.index);
+        const newIndex = newFilesContent.findIndex(
+          (newFile) => newFile.index === file.index
+        );
 
         let content = file.content;
         for (let i = 0; i < paths.length; i++) {
-          console.log({content, paths})
+          console.log({ content, paths });
           const search = `"${paths[i]}`;
-          const replacement = newFilesContent.find((newFileItem) => newFileItem.index === i);
+          const replacement = newFilesContent.find(
+            (newFileItem) => newFileItem.index === i
+          );
           if (content.indexOf(search) !== 0) {
-            content = content.replaceAll(search, `"${makeDataURIFromFile(replacement!)}`);
+            content = content.replaceAll(
+              search,
+              `"${makeDataURIFromFile(replacement!)}`
+            );
           }
           const search2 = `'${paths[i]}`;
           if (content.indexOf(search) !== 0) {
-            console.log('replacing');
-            content = content.replaceAll(search2, `'${makeDataURIFromFile(replacement!)}`);
+            content = content.replaceAll(
+              search2,
+              `'${makeDataURIFromFile(replacement!)}`
+            );
           }
         }
-        console.log('new content', content);
         newFilesContent[newIndex].content = content;
-      }
+      };
 
       newFilesContent.reverse().map(processFile);
 
-
-        const main = newFilesContent.find((file) => file.index === mainIndex);
+      const main = newFilesContent.find((file) => file.index === mainIndex);
       if (preview.current && main?.content) {
         setProductionContent(main.content);
         preview.current.srcdoc = main.content;
@@ -158,7 +165,7 @@ export default function CreatePage() {
     }
   }, [preview, code, files, setProductionContent]);
 
-  console.log({productionContent})
+  console.log({ productionContent });
   useEffect(() => {
     if (autoRun && debouncedCode) {
       update();
@@ -167,7 +174,6 @@ export default function CreatePage() {
 
   const mint = useCallback(() => {
     const mintCode = JSON.stringify({ code: productionContent, type: "p5js" });
-    console.log({mintCode});
     window.localStorage.setItem("mint", mintCode);
     push("/mint");
   }, [code, productionContent]);

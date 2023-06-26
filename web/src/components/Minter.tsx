@@ -44,7 +44,7 @@ export default function Minter() {
     if (project) {
       console.log("has project");
       const frame = document.createElement("iframe");
-      frame.style.opacity = '0';
+      frame.style.opacity = "0";
       frame.width = "400";
       frame.height = "400";
       frame.srcdoc = TEMPLATE("", project.code);
@@ -71,7 +71,13 @@ export default function Minter() {
     try {
       const res = await fetch("/api/upload", {
         method: "POST",
-        body: JSON.stringify({ previewImage, title, description, code: project.code, type: project.type }),
+        body: JSON.stringify({
+          previewImage,
+          title,
+          description,
+          code: project.code,
+          type: project.type,
+        }),
         headers: {
           "content-type": "application/json",
           accept: "application/json",
@@ -83,7 +89,14 @@ export default function Minter() {
     } catch (err: any) {
       setMintingStatus(`Error: ${err.toString()}`);
     }
-  }, [project, title, previewImage, description, setUploadedId, setIsUploading]);
+  }, [
+    project,
+    title,
+    previewImage,
+    description,
+    setUploadedId,
+    setIsUploading,
+  ]);
 
   if (!project) {
     return <>loading...</>;
@@ -118,8 +131,7 @@ export default function Minter() {
       </div>
       <div>
         <label>
-          <strong>Description</strong>: (optional){" "}
-          <br />
+          <strong>Description</strong>: (optional) <br />
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -129,7 +141,9 @@ export default function Minter() {
       </div>
       <div>
         <div>{mintingStatus}</div>
-        <button disabled={isUploading} onClick={uploadAndMint}>Upload</button>
+        <button disabled={isUploading} onClick={uploadAndMint}>
+          Upload
+        </button>
         {uploadedId ? (
           <MintComponent type={project.type} metadata={uploadedId} />
         ) : (
