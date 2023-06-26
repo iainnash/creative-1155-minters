@@ -49,7 +49,7 @@ export default async function handler(
         title,
         description,
         content: { uri: `ipfs://${webpage}`, type: "text/html" },
-        animation_url: `ipfs://${webpage}`,
+        animation_url: `ipfs://${webpage}/index.html`,
         image: previewImage ? `ipfs://${previewImage}` : undefined,
       }),
     ])
