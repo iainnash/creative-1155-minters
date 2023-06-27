@@ -40,26 +40,30 @@ export default function Minter() {
 
   const [previewImage, setPreviewImage] = useState<string>();
 
+  const previewUpdate = useCallback(() => {
+    const frame = document.getElementById("preview-frame") as HTMLIFrameElement;
+    const canvas = frame?.contentDocument?.getElementById("defaultCanvas0");
+    const previewImage = (canvas as HTMLCanvasElement).toDataURL("image/png");
+    setPreviewImage(previewImage);
+  }, [setPreviewImage]);
+
   const renderProject = useCallback(() => {
     if (project) {
       console.log("has project");
       const frame = document.createElement("iframe");
+      frame.id = "preview-frame";
       frame.style.opacity = "0";
       frame.width = "400";
       frame.height = "400";
       frame.srcdoc = TEMPLATE("", project.code);
       frame.addEventListener("load", async () => {
         await waitForElm(frame.contentDocument!, "#defaultCanvas0");
-        await delay(1000);
-        const canvas = frame.contentDocument?.getElementById("defaultCanvas0");
-        const previewImage = (canvas as HTMLCanvasElement).toDataURL(
-          "image/png"
-        );
-        setPreviewImage(previewImage);
+        await delay(2000);
+        previewUpdate();
       });
       document.body.appendChild(frame);
     }
-  }, [project, setPreviewImage]);
+  }, [project, setPreviewImage, previewUpdate]);
 
   useEffect(() => {
     renderProject();
@@ -116,6 +120,7 @@ export default function Minter() {
         ) : (
           "Preview rendering"
         )}
+        <button onClick={previewUpdate}>Update Preview</button>
       </h5>
       <div>
         <label>
