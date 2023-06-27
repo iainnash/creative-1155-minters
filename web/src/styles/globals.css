@@ -40,3 +40,15 @@ h3 {
 input {
     display: block;
 }
+
+dd {
+    margin-left: 20px;
+}
+
+a {
+    text-decoration: underline;
+}
+
+dt {
+    font-size: 1.1em;
+}

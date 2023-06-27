@@ -231,4 +231,4 @@ export const factoryABI = [
     stateMutability: "nonpayable",
     type: "function",
   },
-];
+] as const;

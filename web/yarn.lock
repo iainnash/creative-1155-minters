@@ -1890,10 +1890,10 @@
   resolved "https://registry.yarnpkg.com/@zoralabs/openzeppelin-contracts-upgradeable/-/openzeppelin-contracts-upgradeable-4.8.4.tgz#130b69cd5ff70b1f67da11fe53fe8b2323464b84"
   integrity sha512-5vhL88tz00Gv2+NUhLdYBRqb9RRekfyQAodXTQxJU2LYxxy6jr1mPycTZempQ1kmw5wIwFbSIoYzpaxOx6UK6Q==
 
-"@zoralabs/zora-1155-contracts@^1.3.1":
-  version "1.3.1"
-  resolved "https://registry.yarnpkg.com/@zoralabs/zora-1155-contracts/-/zora-1155-contracts-1.3.1.tgz#7a63951478c8afa59abe581d8df8fdcfb8411e73"
-  integrity sha512-srxLj3Smeqma8hIXP45b0NIBdTGw6vPWYtO0pWKtJws232G7dm2TyB1Okbsdu2e9SqDgNeiRGpi9VBScEpSu6g==
+"@zoralabs/zora-1155-contracts@^1.3.2":
+  version "1.3.2"
+  resolved "https://registry.yarnpkg.com/@zoralabs/zora-1155-contracts/-/zora-1155-contracts-1.3.2.tgz#91065fd7a4f86429c478057af3d9430ee6bde7c9"
+  integrity sha512-0ypPHoQjHLtdMBA6YN5U9d9JMq3e4s7t6aOUewihK7myBitK7ECiQNFIltjY4ZpmbmUgN5y3YOiwxhZTZ/m9Gg==
   dependencies:
     "@openzeppelin/contracts" "4.8.3"
     "@zoralabs/openzeppelin-contracts-upgradeable" "^4.8.4"
