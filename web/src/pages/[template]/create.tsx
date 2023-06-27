@@ -1,26 +1,12 @@
 import Editor from "@monaco-editor/react";
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { useDebounce } from "usehooks-ts";
-import { DEFAULT_P5JS_SKETCH, TEMPLATE } from "@/templates/p5-js";
 import { useRouter } from "next/router";
 import { getType } from "mime";
 import { FileContent } from "@/lib/filesUtils";
+import { GetStaticPaths, GetStaticProps, InferGetStaticPropsType } from "next";
+import { getDefaultFiles } from "@/lib/getDefaultFiles";
 
-const DEFAULT_HTML_FILE = `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <script src="/p5js/p5-all.min.js"></script>
-    <meta charset="utf-8" />
-
-  </head>
-  <body>
-    <main>
-    </main>
-    <script src="sketch.js"></script>
-  </body>
-</html>
-
-`;
 
 function getLanguageForPath(path: string) {
   if (path.endsWith(".html") || path.endsWith(".htm")) {
@@ -75,11 +61,34 @@ function makeDataURI(mime: string, data: string) {
   return `data:${mime};base64,${uriData}`;
 }
 
-export default function CreatePage() {
-  const [files, setFiles] = useState<FileContent[]>([
-    { path: "index.html", content: DEFAULT_HTML_FILE },
-    { path: "sketch.js", content: DEFAULT_P5JS_SKETCH },
-  ]);
+export const getStaticPaths: GetStaticPaths = async () => {
+  return {
+    paths: [
+      {
+        params: {
+          template: "p5js",
+        },
+      },
+      {
+        params: {
+          template: "asdf",
+        },
+      },
+    ],
+    fallback: false, // false or "blocking"
+  };
+};
+
+export const getStaticProps: GetStaticProps<{ template: string }> = async (
+  query
+) => {
+  return { props: { template: query.params!.template as string } };
+};
+
+export default function CreatePage({
+  template,
+}: InferGetStaticPropsType<typeof getStaticProps>) {
+  const [files, setFiles] = useState<FileContent[]>(getDefaultFiles(template));
   const [activeFileIndex, setActiveFileIndex] = useState(0);
   const code = useMemo(() => {
     return files[activeFileIndex].content || "";
@@ -173,7 +182,10 @@ export default function CreatePage() {
   }, [debouncedCode, autoRun, update]);
 
   const mint = useCallback(() => {
-    const mintCode = JSON.stringify({ code: productionContent, type: "p5js" });
+    const mintCode = JSON.stringify({
+      code: productionContent,
+      type: template,
+    });
     window.localStorage.setItem("mint", mintCode);
     push("/mint");
   }, [code, productionContent]);

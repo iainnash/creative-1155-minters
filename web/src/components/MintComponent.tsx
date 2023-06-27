@@ -2,7 +2,6 @@ import { CONTRACTS_BY_NETWORK } from "@/lib/contracts";
 import { factoryABI } from "@/lib/factoryABI";
 import { goerli, zora, zoraTestnet } from "@wagmi/chains";
 import {
-  zoraCreator1155FactoryImplABI,
   zoraCreator1155ImplABI,
   zoraCreatorFixedPriceSaleStrategyABI,
 } from "@zoralabs/zora-1155-contracts";
@@ -10,10 +9,8 @@ import { ConnectKitButton } from "connectkit";
 import { useCallback, useMemo, useState } from "react";
 import {
   Hex,
-  encodeAbiParameters,
   encodeFunctionData,
   parseEther,
-  zeroAddress,
 } from "viem";
 import {
   Address,

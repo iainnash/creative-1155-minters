@@ -24,6 +24,23 @@ export const TEMPLATE = (title: string, sketch: string) => `
 </html>
 `;
 
+export const DEFAULT_HTML_FILE = `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="/p5js/p5-all.min.js"></script>
+    <meta charset="utf-8" />
+
+  </head>
+  <body>
+    <main>
+    </main>
+    <script src="sketch.js"></script>
+  </body>
+</html>
+
+`;
+
+
 export const DEFAULT_P5JS_SKETCH = `
 function setup() {
     createCanvas(windowWidth, windowHeight);

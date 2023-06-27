@@ -221,7 +221,6 @@ function injectLocalFiles(
   let objectUrls: any = {};
   let objectPaths: any = {};
   const resolvedFiles = resolveJSAndCSSLinks(files);
-  console.log({resolvedFiles})
   const parser = new DOMParser();
   const sketchDoc = parser.parseFromString(htmlFile.content, "text/html");
 
