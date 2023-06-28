@@ -1,23 +1,21 @@
 import { CONTRACTS_BY_NETWORK } from "@/lib/contracts";
-import { factoryABI } from "@/lib/factoryABI";
+import { getUserCollections } from "@/lib/subgraph";
 import { goerli, zora, zoraTestnet } from "@wagmi/chains";
 import {
+  zoraCreator1155FactoryImplABI,
   zoraCreator1155ImplABI,
   zoraCreatorFixedPriceSaleStrategyABI,
 } from "@zoralabs/zora-1155-contracts";
 import { ConnectKitButton } from "connectkit";
 import { useCallback, useMemo, useState } from "react";
-import {
-  Hex,
-  encodeFunctionData,
-  parseEther,
-} from "viem";
+import { Hex, encodeFunctionData, getContractAddress, parseEther } from "viem";
 import {
   Address,
   useAccount,
   useChainId,
   useContractEvent,
   useContractWrite,
+  useQuery,
 } from "wagmi";
 
 export const MintComponent = ({
@@ -29,12 +27,63 @@ export const MintComponent = ({
 }) => {
   const chain = useChainId();
   const { address } = useAccount();
-  const { write, data } = useContractWrite({
-    address: CONTRACTS_BY_NETWORK[chain].creativeMintManager,
-    abi: factoryABI,
-    functionName: "mintProject",
-    args: [type, `ipfs://${metadata.metadata}`, BigInt("18446744073709552000")],
+
+  const { address: userAddress } = useAccount();
+  const { data: userCollections, isLoading: collectionsLoading } = useQuery({
+    // @ts-ignore
+    queryKey: userAddress
+      ? ["collections", { user: userAddress.toString(), chain }]
+      : undefined,
+    queryFn: getUserCollections,
   });
+
+  // const { write, data } = useContractWrite({
+  //   address: CONTRACTS_BY_NETWORK[chain].creativeMintManager,
+  //   abi: factoryABI,
+  //   functionName: "mintProject",
+  //   args: [type, `ipfs://${metadata.metadata}`, BigInt("18446744073709552000")],
+  // });
+
+  const collection =
+    (userCollections as any)?.zoraCreateContracts?.length > 0
+      ? (userCollections as any).zoraCreateContracts[0]
+      : undefined;
+  const { write: setupNewToken, isLoading: setupNewTokenLoading } =
+    useContractWrite({
+      address: collection?.address,
+      abi: zoraCreator1155ImplABI,
+      functionName: "setupNewToken",
+      args: [`ipfs://${metadata.metadata}`, BigInt("18446744073709552000")],
+    });
+
+  const contracts = CONTRACTS_BY_NETWORK[chain];
+
+  const { write: writeCreateContract, isLoading: writingCreateContract } =
+    useContractWrite({
+      address: !collection ? contracts.zora1155CreatorFactory : undefined,
+      abi: zoraCreator1155FactoryImplABI,
+      functionName: "createContract",
+      args: [
+        "",
+        "P5JS Mints",
+        {
+          royaltyMintSchedule: 0,
+          royaltyBPS: 1000,
+          royaltyRecipient: address!,
+        },
+        address!,
+        [
+          encodeFunctionData({
+            abi: zoraCreator1155ImplABI,
+            functionName: "setupNewToken",
+            args: [
+              `ipfs://${metadata.metadata}`,
+              BigInt("18446744073709552000"),
+            ],
+          }),
+        ],
+      ],
+    });
 
   const [minted, setMinted] = useState(false);
   const [mintedTo, setMintedTo] = useState<{
@@ -42,22 +91,59 @@ export const MintComponent = ({
     tokenId: bigint;
   } | null>(null);
 
+  // useContractEvent({
+  //   chainId: chain,
+  //   address: contracts.creativeMintManager,
+  //   abi: factoryABI,
+  //   eventName: "MintedNewToken",
+  //   listener(logs) {
+  //     logs.find((log) => {
+  //       if (
+  //         log.eventName === "MintedNewToken" &&
+  //         log.args.target &&
+  //         log.args.tokenId
+  //       ) {
+  //         setMintedTo({ target: log.args.target, tokenId: log.args.tokenId });
+  //       }
+  //     });
+  //     setMinted(true);
+  //   },
+  // });
+
   useContractEvent({
     chainId: chain,
-    address: CONTRACTS_BY_NETWORK[chain].creativeMintManager,
-    abi: factoryABI,
-    eventName: "MintedNewToken",
+    address: contracts.zora1155CreatorFactory,
+    abi: zoraCreator1155FactoryImplABI,
+    eventName: "SetupNewContract",
     listener(logs) {
+      console.log({ logs });
       logs.find((log) => {
         if (
-          log.eventName === "MintedNewToken" &&
-          log.args.target &&
-          log.args.tokenId
+          log.eventName === "SetupNewContract" &&
+          log.args.newContract &&
+          log.args.creator
         ) {
-          setMintedTo({ target: log.args.target, tokenId: log.args.tokenId });
+          if (log.args.creator === address) {
+            setMintedTo({ target: log.args.newContract, tokenId: BigInt(1) });
+          }
         }
       });
-      setMinted(true);
+    },
+  });
+
+  useContractEvent({
+    chainId: chain,
+    address: collection?.address,
+    abi: zoraCreator1155ImplABI,
+    eventName: "SetupNewToken",
+    listener(logs) {
+      for (const log of logs) {
+        console.log({ log, type: "filter" });
+        if (log.eventName === "SetupNewToken" && log.args.tokenId) {
+          console.log({ log, type: "seen" });
+          setMintedTo({ target: log.address, tokenId: log.args.tokenId });
+        }
+      }
     },
   });
 
@@ -67,6 +153,7 @@ export const MintComponent = ({
     if (!mintedTo || !address) {
       return ["0x"] as readonly Hex[];
     }
+
     const fixedPriceSalesConfig =
       CONTRACTS_BY_NETWORK[chain].fixedPriceSalesConfig;
     // step 1 setup minter permission
@@ -103,7 +190,7 @@ export const MintComponent = ({
     });
 
     return [addPermission, callSale] as readonly Hex[];
-  }, [mintedTo, price, address]);
+  }, [mintedTo, price, address, userCollections]);
 
   const { write: writeSale } = useContractWrite({
     address: mintedTo?.target,
@@ -141,10 +228,32 @@ export const MintComponent = ({
   }
   return (
     <>
-      <button onClick={() => write?.()} disabled={!write || minted}>
-        Mint
-      </button>
-      {minted && (
+      {collection ? (
+        <button
+          onClick={() => setupNewToken?.()}
+          disabled={
+            collectionsLoading ||
+            setupNewTokenLoading ||
+            !setupNewToken ||
+            minted
+          }
+        >
+          Add NFT to collection
+        </button>
+      ) : (
+        <button
+          onClick={() => writeCreateContract?.()}
+          disabled={
+            collectionsLoading ||
+            !writeCreateContract ||
+            !writingCreateContract ||
+            minted
+          }
+        >
+          Create P5JS Collection and Mint
+        </button>
+      )}
+      {mintedTo && (
         <div>
           <div>
             <p>
@@ -170,7 +279,7 @@ export const MintComponent = ({
               value={price}
               onChange={(e) => setPrice(e.target.value)}
             />
-            <button onClick={() => setSale()} disabled={!write}>
+            <button onClick={() => writeSale()} disabled={!writeSale}>
               Set Sale Price
             </button>
           </label>

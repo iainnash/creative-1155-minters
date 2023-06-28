@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@monaco-editor/react": "^4.5.1",
+    "@tanstack/react-query": "^4.29.19",
     "@types/decomment": "^0.9.3",
     "@types/jshint": "^2.12.2",
     "@types/mime": "^3.0.1",
@@ -24,6 +25,8 @@
     "decomment": "^0.9.5",
     "eslint": "8.42.0",
     "eslint-config-next": "13.4.6",
+    "graphql": "^16.7.1",
+    "graphql-request": "^6.1.0",
     "jshint": "^2.13.6",
     "loop-protect": "^2.1.6",
     "mime": "^3.0.0",

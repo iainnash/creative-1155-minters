@@ -7,6 +7,7 @@ export const config = createConfig(
   getDefaultConfig({
     // chains: [mainnet, goerli, zora, zoraTestnet],
     chains: [zoraTestnet, zora, goerli],
+    
     // Required API Keys
     alchemyId: process.env.ALCHEMY_ID, // or infuraId
     walletConnectProjectId: process.env.WALLETCONNECT_PROJECT_ID!,
