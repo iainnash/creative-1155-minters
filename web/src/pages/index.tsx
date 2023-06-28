@@ -9,9 +9,7 @@ export default function Index() {
       <div>
         <h3>Create your Sketch</h3>
         <button onClick={() => push(`/p5js/create`)}>P5JS</button>
-        <button>ThreeJS</button>
-        <button>Hydra</button>
-        <button>Vanilla HTML/CSS</button>
+        <button onClick={() => push(`/vanilla/create`)}>HTML/CSS Webpage</button>
       </div>
     </div>
   );

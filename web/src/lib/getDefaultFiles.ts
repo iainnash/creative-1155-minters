@@ -12,6 +12,8 @@ export function getDefaultFiles(path: string) {
       { path: "sketch.js", content: DEFAULT_P5JS_SKETCH },
     ];
   }
+
+  // vanilla default
   return [
     { path: "index.html", content: PLAIN_HTML_FILE },
     { path: "script.js", content: BLANK_JAVASCRIPT_SCRIPT },

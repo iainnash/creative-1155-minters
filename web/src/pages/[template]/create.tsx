@@ -71,7 +71,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
       },
       {
         params: {
-          template: "asdf",
+          template: "vanilla",
         },
       },
     ],
