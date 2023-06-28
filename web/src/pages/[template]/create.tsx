@@ -233,7 +233,7 @@ export default function CreatePage({
           />
         </div>
         <iframe
-        
+          sandbox={""} 
           ref={preview}
           style={{
             height: "100vh",
