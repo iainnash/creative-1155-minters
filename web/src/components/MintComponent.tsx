@@ -7,13 +7,14 @@ import {
   zoraCreatorFixedPriceSaleStrategyABI,
 } from "@zoralabs/zora-1155-contracts";
 import { ConnectKitButton } from "connectkit";
-import { useCallback, useMemo, useState } from "react";
-import { Hex, encodeFunctionData, getContractAddress, parseEther } from "viem";
+import { useMemo, useState } from "react";
+import { Hex, encodeFunctionData, parseEther } from "viem";
 import {
   Address,
   useAccount,
   useChainId,
   useContractEvent,
+  useContractRead,
   useContractWrite,
   useQuery,
 } from "wagmi";
@@ -48,12 +49,39 @@ export const MintComponent = ({
     (userCollections as any)?.zoraCreateContracts?.length > 0
       ? (userCollections as any).zoraCreateContracts[0]
       : undefined;
+
+  const { data: nextTokenId } = useContractRead({
+    address: collection?.address,
+    abi: zoraCreator1155ImplABI,
+    functionName: "nextTokenId",
+  });
+
+  const writeArgs = useMemo(() => {
+    const setupToken = encodeFunctionData({
+      abi: zoraCreator1155ImplABI,
+      functionName: "setupNewToken",
+      args: [`ipfs://${metadata.metadata}`, BigInt("18446744073709552000")],
+    });
+
+    if (nextTokenId) {
+      return [
+        setupToken,
+        encodeFunctionData({
+          abi: zoraCreator1155ImplABI,
+          functionName: "adminMint",
+          args: [address!, nextTokenId!, BigInt(1), "0x"],
+        }),
+      ];
+    }
+    return [setupToken];
+  }, [address, nextTokenId, metadata]);
+
   const { write: setupNewToken, isLoading: setupNewTokenLoading } =
     useContractWrite({
       address: collection?.address,
       abi: zoraCreator1155ImplABI,
-      functionName: "setupNewToken",
-      args: [`ipfs://${metadata.metadata}`, BigInt("18446744073709552000")],
+      functionName: "multicall",
+      args: [writeArgs],
     });
 
   const contracts = CONTRACTS_BY_NETWORK[chain];
@@ -80,6 +108,11 @@ export const MintComponent = ({
               `ipfs://${metadata.metadata}`,
               BigInt("18446744073709552000"),
             ],
+          }),
+          encodeFunctionData({
+            abi: zoraCreator1155ImplABI,
+            functionName: "adminMint",
+            args: [address!, BigInt(1), BigInt(1), "0x"],
           }),
         ],
       ],
@@ -110,14 +143,14 @@ export const MintComponent = ({
   //   },
   // });
 
+  // monitor for newly created contract
   useContractEvent({
     chainId: chain,
     address: contracts.zora1155CreatorFactory,
     abi: zoraCreator1155FactoryImplABI,
     eventName: "SetupNewContract",
     listener(logs) {
-      console.log({ logs });
-      logs.find((log) => {
+      for (const log of logs) {
         if (
           log.eventName === "SetupNewContract" &&
           log.args.newContract &&
@@ -127,10 +160,11 @@ export const MintComponent = ({
             setMintedTo({ target: log.args.newContract, tokenId: BigInt(1) });
           }
         }
-      });
+      }
     },
   });
 
+  // monitor for new token created on contract
   useContractEvent({
     chainId: chain,
     address: collection?.address,
@@ -138,9 +172,7 @@ export const MintComponent = ({
     eventName: "SetupNewToken",
     listener(logs) {
       for (const log of logs) {
-        console.log({ log, type: "filter" });
         if (log.eventName === "SetupNewToken" && log.args.tokenId) {
-          console.log({ log, type: "seen" });
           setMintedTo({ target: log.address, tokenId: log.args.tokenId });
         }
       }
@@ -213,10 +245,6 @@ export const MintComponent = ({
       return `https://testnet.zora.co/collections/gor:${mintedTo.target}/${mintedTo.tokenId}`;
     }
   }, [mintedTo, chain]);
-
-  const setSale = useCallback(() => {
-    writeSale?.();
-  }, [mintedTo, price]);
 
   if (!address) {
     return (
