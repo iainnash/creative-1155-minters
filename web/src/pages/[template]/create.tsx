@@ -7,7 +7,6 @@ import { FileContent } from "@/lib/filesUtils";
 import { GetStaticPaths, GetStaticProps, InferGetStaticPropsType } from "next";
 import { getDefaultFiles } from "@/lib/getDefaultFiles";
 
-
 function getLanguageForPath(path: string) {
   if (path.endsWith(".html") || path.endsWith(".htm")) {
     return "html";
@@ -233,7 +232,8 @@ export default function CreatePage({
           />
         </div>
         <iframe
-          sandbox={""} 
+          allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+          sandbox="allow-scripts"
           ref={preview}
           style={{
             height: "100vh",
