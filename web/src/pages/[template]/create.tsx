@@ -88,7 +88,7 @@ export default function CreatePage({
   template,
 }: InferGetStaticPropsType<typeof getStaticProps>) {
   const [files, setFiles] = useState<FileContent[]>(getDefaultFiles(template));
-  const [activeFileIndex, setActiveFileIndex] = useState(0);
+  const [activeFileIndex, setActiveFileIndex] = useState(1);
   const code = useMemo(() => {
     return files[activeFileIndex].content || "";
   }, [files, activeFileIndex]);
@@ -173,7 +173,6 @@ export default function CreatePage({
     }
   }, [preview, code, files, setProductionContent]);
 
-  console.log({ productionContent });
   useEffect(() => {
     if (autoRun && debouncedCode) {
       update();
@@ -187,7 +186,7 @@ export default function CreatePage({
     });
     window.localStorage.setItem("mint", mintCode);
     push("/mint");
-  }, [code, productionContent]);
+  }, [push, template, productionContent]);
 
   return (
     <>
