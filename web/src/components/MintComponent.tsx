@@ -64,7 +64,7 @@ export const MintComponent = ({
       abi: zoraCreator1155FactoryImplABI,
       functionName: "createContract",
       args: [
-        "",
+        "ipfs://bafkreihu6ihpfyozydukhszmwtcomdaj6qgmpogde34w7cfo5v4m66oilm",
         "P5JS Mints",
         {
           royaltyMintSchedule: 0,
