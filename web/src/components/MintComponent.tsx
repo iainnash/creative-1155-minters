@@ -246,7 +246,7 @@ export const MintComponent = ({
           disabled={
             collectionsLoading ||
             !writeCreateContract ||
-            !writingCreateContract ||
+            writingCreateContract ||
             minted
           }
         >
